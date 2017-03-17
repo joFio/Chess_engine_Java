@@ -12,18 +12,20 @@ package chess_engine;
 public class Chess_Engine {
 
     /**
-     * @param args the command line arguments
-     * 
+     * @param the command line arguments
+     *
      */
-    public enum Type {
-    
-    }
     public static void main(String[] args) {
-        // TODO code application logic here            
-        Bitboard.toBitboard(1);
-        
-        System.out.print(Bitboard.searchPosition(16));
+        int position = 56;
+        Piece piece = new Piece((long) Math.pow((double)2, (double)position), PieceType.KING, false);
+        Bitboard.out(piece.getBitboard());
+        Bitboard.out(Bitboard.getVerticalMoves(piece, 0));
+        Bitboard.out(Bitboard.getHorizontalMoves(piece, 0));
+        Bitboard.out(Bitboard.getDiagonalMoves(piece, 0)[0]);
+        Bitboard.out(Bitboard.getDiagonalMoves(piece, 0)[1]);   
+        Bitboard.out(Bitboard.getKnightMoves(piece));
+        Bitboard.out(Bitboard.getKingMoves(piece));        
         
     }
-    
+
 }

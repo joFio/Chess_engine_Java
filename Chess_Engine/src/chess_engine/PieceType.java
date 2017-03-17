@@ -10,5 +10,5 @@ package chess_engine;
  * @author jonathan
  */
 public enum PieceType {
-    ROOK, KNIGHT, BISHOP,QUEEN,KING,PAWN
+    ROOK, KNIGHT, BISHOP, QUEEN, KING, PAWN
 }
