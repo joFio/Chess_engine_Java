@@ -222,6 +222,13 @@ public class Bitboard {
         return new long[]{maskLeftToRight, maskRightToLeft};
     }
 
+    /**
+     * This method returns the bitboards containing all the possible knight
+     * moves for the piece with the current bitboards.
+     *
+     * @param piece This is the piece which we generate moves for.
+     * @return return bitboard
+     */
     public static long getKnightMoves(Piece piece) {
         long bitboard = piece.getBitboard();
         int position = piece.getPosition();
@@ -255,6 +262,13 @@ public class Bitboard {
         return mask;
     }
 
+    /**
+     * This method returns the bitboards containing all the possible king moves
+     * for the piece with the current bitboards.
+     *
+     * @param piece This is the piece which we generate moves for.
+     * @return return bitboard
+     */
     public static long getKingMoves(Piece piece) {
         long bitboard = piece.getBitboard();
         int position = piece.getPosition();
@@ -287,4 +301,153 @@ public class Bitboard {
         }
         return mask;
     }
+
+    /**
+     * This method returns the bitboards containing all the possible moves for
+     * the black pawn with the current bitboards.
+     *
+     * @param piece This is the piece which we generate moves for.
+     * @return return bitboard
+     */
+    public static long getBlackPawnOneStepMoves(Piece piece) {
+        long bitboard = piece.getBitboard();
+        int position = piece.getPosition();
+        int row = position / 8;
+        long mask = bitboard;
+        if (row < 7) {
+            mask = mask | (bitboard << 8);
+        }
+        return mask;
+    }
+
+    /**
+     * This method returns the bitboards containing all the possible moves for
+     * the black pawn with the current bitboards.
+     *
+     * @param piece This is the piece which we generate moves for.
+     * @return return bitboard
+     */
+    public static long getBlackPawnTwoStepMoves(Piece piece) {
+        long bitboard = piece.getBitboard();
+        int position = piece.getPosition();
+        int row = position / 8;
+        long mask = bitboard;
+        if (row < 6) {
+            mask = mask | (bitboard << 16);
+        }
+        return mask;
+    }
+
+    /**
+     * This method returns the bitboards containing all the possible moves for
+     * the white pawn with the current bitboards.
+     *
+     * @param piece This is the piece which we generate moves for.
+     * @return return bitboard
+     */
+    public static long getWhitePawnOneStepMoves(Piece piece) {
+        long bitboard = piece.getBitboard();
+        int position = piece.getPosition();
+        int row = position / 8;
+        long mask = bitboard;
+        if (row > 0) {
+            mask = mask | (bitboard >> 8);
+        }
+        return mask;
+    }
+
+    /**
+     * This method returns the bitboards containing all the possible moves for
+     * the white pawn with the current bitboards.
+     *
+     * @param piece This is the piece which we generate moves for.
+     * @return return bitboard
+     */
+    public static long getWhitePawnTwoStepMoves(Piece piece) {
+        long bitboard = piece.getBitboard();
+        int position = piece.getPosition();
+        int row = position / 8;
+        long mask = bitboard;
+        if (row > 1) {
+            mask = mask | (bitboard >> 16);
+        }
+        return mask;
+    }
+
+    /**
+     * This method returns the bitboards containing all the possible diagonal
+     * moves for the white pawn with the current bitboards.
+     *
+     * @param piece This is the piece which we generate moves for.
+     * @return return bitboard
+     */
+    public static long getWhitePawnRightDiagMoves(Piece piece) {
+        long bitboard = piece.getBitboard();
+        int position = piece.getPosition();
+        int row = position / 8;
+        int col = position % 8;
+        long mask = bitboard;
+        if (row > 0 && col > 0) {
+            mask = mask | (bitboard >> 9);
+        }
+        return mask;
+    }
+
+    /**
+     * This method returns the bitboards containing all the possible diagonal
+     * moves for the white pawn with the current bitboards.
+     *
+     * @param piece This is the piece which we generate moves for.
+     * @return return bitboard
+     */
+    public static long getWhitePawnLeftDiagMoves(Piece piece) {
+        long bitboard = piece.getBitboard();
+        int position = piece.getPosition();
+        int row = position / 8;
+        int col = position % 8;
+        long mask = bitboard;
+        if (row > 0 && col < 7) {
+            mask = mask | (bitboard >> 7);
+        }
+        return mask;
+    }
+
+    /**
+     * This method returns the bitboards containing all the possible diagonal
+     * moves for the black pawn with the current bitboards.
+     *
+     * @param piece This is the piece which we generate moves for.
+     * @return return bitboard
+     */
+    public static long getBlackPawnRightDiagMoves(Piece piece) {
+        long bitboard = piece.getBitboard();
+        int position = piece.getPosition();
+        int row = position / 8;
+        int col = position % 8;
+        long mask = bitboard;
+        if (row < 7 && col > 0) {
+            mask = mask | (bitboard << 7);
+        }
+        return mask;
+    }
+
+    /**
+     * This method returns the bitboards containing all the possible diagonal
+     * moves for the black pawn with the current bitboards.
+     *
+     * @param piece This is the piece which we generate moves for.
+     * @return return bitboard
+     */
+    public static long getBlackPawnLeftDiagMoves(Piece piece) {
+        long bitboard = piece.getBitboard();
+        int position = piece.getPosition();
+        int row = position / 8;
+        int col = position % 8;
+        long mask = bitboard;
+        if (col < 7 && row < 7) {
+            mask = mask | (bitboard << 9);
+        }
+        return mask;
+    }
+
 }
