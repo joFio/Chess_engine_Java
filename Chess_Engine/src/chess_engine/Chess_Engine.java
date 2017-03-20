@@ -25,8 +25,6 @@ public class Chess_Engine {
         Bitboard.out(Bitboard.getDiagonalMoves(piece, 0)[1]);
         Bitboard.out(Bitboard.getKnightMoves(piece));
         Bitboard.out(Bitboard.getKingMoves(piece));
-        
-
     }
 
 }

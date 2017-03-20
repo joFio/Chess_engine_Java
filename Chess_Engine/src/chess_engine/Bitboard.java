@@ -263,6 +263,75 @@ public class Bitboard {
     }
 
     /**
+     * This method returns the possible castling moves
+     *
+     * @param piece Piece which is to castle
+     * @param bitboards
+     * @param rooks
+     * @return
+     */
+    public static long getCastlingMoves(Piece piece, long bitboards, Piece[] rooks) {
+        long bitboard = piece.getBitboard();
+        long mask = bitboard;
+        if (piece.isMoved() == false) {
+            if (piece.getTeam() == false) {
+                if (rooks.length > 0) {
+                    Piece rook = rooks[0];
+                    if (rook.isMoved() == false) {
+                        if ((bitboards & SetupConstants.CASTLING_WHITE_KING_1) == ((bitboard | rook.getBitboard()) & SetupConstants.CASTLING_WHITE_MASK_1)) {
+                            mask = mask | SetupConstants.CASTLING_WHITE_KING_1;
+                        }
+                        if ((bitboards & SetupConstants.CASTLING_WHITE_KING_2) == ((bitboard | rook.getBitboard()) & SetupConstants.CASTLING_WHITE_MASK_2)) {
+                            mask = mask | SetupConstants.CASTLING_WHITE_KING_2;
+                        }
+
+                    }
+
+                }
+                if (rooks.length > 1) {
+                    Piece rook = rooks[1];
+                    if (rook.isMoved() == false) {
+                        if ((bitboards & SetupConstants.CASTLING_WHITE_KING_1) == ((bitboard | rook.getBitboard()) & SetupConstants.CASTLING_WHITE_MASK_1)) {
+                            mask = mask | SetupConstants.CASTLING_WHITE_KING_1;
+                        }
+                        if ((bitboards & SetupConstants.CASTLING_WHITE_KING_2) == ((bitboard | rook.getBitboard()) & SetupConstants.CASTLING_WHITE_MASK_2)) {
+                            mask = mask | SetupConstants.CASTLING_WHITE_KING_2;
+                        }
+                    }
+                }
+
+            } else {
+                if (rooks.length > 0) {
+                    Piece rook = rooks[0];
+                    if (rook.isMoved() == false) {
+                        if ((bitboards & SetupConstants.CASTLING_BLACK_KING_1) == ((bitboard | rook.getBitboard()) & SetupConstants.CASTLING_BLACK_MASK_1)) {
+                            mask = mask | SetupConstants.CASTLING_BLACK_KING_1;
+                        }
+                        if ((bitboards & SetupConstants.CASTLING_BLACK_KING_2) == ((bitboard | rook.getBitboard()) & SetupConstants.CASTLING_BLACK_MASK_2)) {
+                            mask = mask | SetupConstants.CASTLING_BLACK_KING_2;
+                        }
+
+                    }
+
+                }
+                if (rooks.length > 1) {
+                    Piece rook = rooks[1];
+                    if (rook.isMoved() == false) {
+                        if ((bitboards & SetupConstants.CASTLING_BLACK_KING_1) == ((bitboard | rook.getBitboard()) & SetupConstants.CASTLING_BLACK_MASK_1)) {
+                            mask = mask | SetupConstants.CASTLING_BLACK_KING_1;
+                        }
+                        if ((bitboards & SetupConstants.CASTLING_BLACK_KING_2) == ((bitboard | rook.getBitboard()) & SetupConstants.CASTLING_BLACK_MASK_2)) {
+                            mask = mask | SetupConstants.CASTLING_BLACK_KING_2;
+                        }
+                    }
+                }
+
+            }
+        }
+        return 10;
+    }
+
+    /**
      * This method returns the bitboards containing all the possible king moves
      * for the piece with the current bitboards.
      *
