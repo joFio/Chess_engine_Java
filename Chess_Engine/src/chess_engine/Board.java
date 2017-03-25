@@ -12,19 +12,19 @@ import java.util.List;
  * @author jonathan
  */
 public class Board {
-    
+
     private List<Piece> pieces;
     private List<Piece> whitePieces;
-    private List<Piece> blackPieces;    
-    
+    private List<Piece> blackPieces;
+
     private Piece whiteKing;
     private Piece blackKing;
 
-   /**
-    * The fields below can be populated agin when pieces are promoted -> change of
-    * PieceType. We use fields for each piece category to improve efficiency when
-    * accessing them.
-    */
+    /**
+     * The fields below can be populated agin when pieces are promoted -> change
+     * of PieceType. We use fields for each piece category to improve efficiency
+     * when accessing them.
+     */
     private boolean teamPlay;
     private List<Piece> whitePawns;
     private List<Piece> whiteRooks;
@@ -88,9 +88,10 @@ public class Board {
         pieces.addAll(whitePieces);
         pieces.addAll(blackPieces);
     }
-    
+
     /**
-     * This function refreshes the board by populating the fields again. To be used when promoting pieces
+     * This function refreshes the board by populating the fields again. To be
+     * used when promoting pieces
      */
     public void refresh() {
         whitePawns.clear();

@@ -6,6 +6,7 @@
 package chess_engine;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * This set of methods perform operations on bitboards. Bitboards are 64-bit
@@ -272,13 +273,12 @@ public class Bitboard {
      * @param rooks
      * @return
      */
-    public static long getCastlingMoves(Piece piece, long bitboards, Piece[] rooks) {
+    public static long getCastlingMoves(Piece piece, long bitboards, List<Piece> rooks) {
         long bitboard = piece.getBitboard();
         long mask = bitboard;
         if (piece.isMoved() == false) {
             if (piece.getTeam() == false) {
-                if (rooks.length > 0) {
-                    Piece rook = rooks[0];
+                for (Piece rook : rooks) {
                     if (rook.isMoved() == false) {
                         if ((bitboards & SetupConstants.CASTLING_WHITE_KING_1) == ((bitboard | rook.getBitboard()) & SetupConstants.CASTLING_WHITE_MASK_1)) {
                             mask = mask | SetupConstants.CASTLING_WHITE_KING_1;
@@ -288,23 +288,9 @@ public class Bitboard {
                         }
 
                     }
-
                 }
-                if (rooks.length > 1) {
-                    Piece rook = rooks[1];
-                    if (rook.isMoved() == false) {
-                        if ((bitboards & SetupConstants.CASTLING_WHITE_KING_1) == ((bitboard | rook.getBitboard()) & SetupConstants.CASTLING_WHITE_MASK_1)) {
-                            mask = mask | SetupConstants.CASTLING_WHITE_KING_1;
-                        }
-                        if ((bitboards & SetupConstants.CASTLING_WHITE_KING_2) == ((bitboard | rook.getBitboard()) & SetupConstants.CASTLING_WHITE_MASK_2)) {
-                            mask = mask | SetupConstants.CASTLING_WHITE_KING_2;
-                        }
-                    }
-                }
-
             } else {
-                if (rooks.length > 0) {
-                    Piece rook = rooks[0];
+                for (Piece rook : rooks) {
                     if (rook.isMoved() == false) {
                         if ((bitboards & SetupConstants.CASTLING_BLACK_KING_1) == ((bitboard | rook.getBitboard()) & SetupConstants.CASTLING_BLACK_MASK_1)) {
                             mask = mask | SetupConstants.CASTLING_BLACK_KING_1;
@@ -314,23 +300,10 @@ public class Bitboard {
                         }
 
                     }
-
                 }
-                if (rooks.length > 1) {
-                    Piece rook = rooks[1];
-                    if (rook.isMoved() == false) {
-                        if ((bitboards & SetupConstants.CASTLING_BLACK_KING_1) == ((bitboard | rook.getBitboard()) & SetupConstants.CASTLING_BLACK_MASK_1)) {
-                            mask = mask | SetupConstants.CASTLING_BLACK_KING_1;
-                        }
-                        if ((bitboards & SetupConstants.CASTLING_BLACK_KING_2) == ((bitboard | rook.getBitboard()) & SetupConstants.CASTLING_BLACK_MASK_2)) {
-                            mask = mask | SetupConstants.CASTLING_BLACK_KING_2;
-                        }
-                    }
-                }
-
             }
         }
-        return 10;
+        return mask;
     }
 
     /**
@@ -521,7 +494,7 @@ public class Bitboard {
         return mask;
     }
 
-    public static long[] getMoves(Piece piece, long teamBitboards, long adversaryBitboards, long adversaryPawnEnpassantBitboards, Piece[] teamRooks) {
+    public static long[] getMoves(Piece piece, long teamBitboards, long adversaryBitboards, long adversaryPawnEnpassantBitboards, List<Piece> teamRooks) {
         return getMoves(piece, teamBitboards, adversaryBitboards, adversaryPawnEnpassantBitboards, teamRooks, false);
     }
     // Check if component include piece. Do not include mask in return value -> create other method that compiles
@@ -550,7 +523,7 @@ public class Bitboard {
         return mask;
     }
 
-    public static long[] getMoves(Piece piece, long teamBitboards, long adversaryBitboards, long adversaryPawnEnpassantBitboards, Piece[] teamRooks, boolean attack) {
+    public static long[] getMoves(Piece piece, long teamBitboards, long adversaryBitboards, long adversaryPawnEnpassantBitboards, List<Piece> teamRooks, boolean attack) {
         boolean moved = piece.isMoved();
         boolean team = piece.getTeam();
         long pieceBitboard = piece.getBitboard();
@@ -646,7 +619,7 @@ public class Bitboard {
     public static int[] getPositionsFromBitboard(long bitboard) {
         int[] positions;
         positions = new int[64];
-        Arrays.fill(positions,-1);
+        Arrays.fill(positions, -1);
         if (bitboard == 0) {
             return positions;
         }
@@ -654,7 +627,7 @@ public class Bitboard {
         int counter = 0;
         int iterator = 0;
         long val = bitboard;
-        
+
         while (stop == false) {
             long newVal = val / 2;
             long mod = val % 2;

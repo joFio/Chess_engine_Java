@@ -15,8 +15,8 @@ public class Chess_Engine {
      * @param the command line arguments
      *
      */
-    public static void main(String[] args) {        
-        Board game = new Board();       
+    public static void main(String[] args) {
+        Board game = new Board();
     }
 
 }
