@@ -5,6 +5,8 @@
  */
 package chess_engine;
 
+import java.util.Arrays;
+
 /**
  * This set of methods perform operations on bitboards. Bitboards are 64-bit
  * integers (long) containing the position of the pieces on the board.
@@ -517,6 +519,156 @@ public class Bitboard {
             mask = mask | (bitboard << 9);
         }
         return mask;
+    }
+
+    public static long[] getMoves(Piece piece, long teamBitboards, long adversaryBitboards, long adversaryPawnEnpassantBitboards, Piece[] teamRooks) {
+        return getMoves(piece, teamBitboards, adversaryBitboards, adversaryPawnEnpassantBitboards, teamRooks, false);
+    }
+    // Check if component include piece. Do not include mask in return value -> create other method that compiles
+
+    /**
+     * Applies "or" operator to all components of an array of long
+     *
+     * @param bitboards
+     * @return
+     */
+    public static long or(long[] bitboards) {
+        int k = bitboards.length;
+        long mask = 0L;
+        for (int i = 0; i < k; i++) {
+            mask = mask | bitboards[i];
+        }
+        return mask;
+    }
+
+    public static long and(long[] bitboards) {
+        int k = bitboards.length;
+        long mask = 0L;
+        for (int i = 0; i < k; i++) {
+            mask = mask & bitboards[i];
+        }
+        return mask;
+    }
+
+    public static long[] getMoves(Piece piece, long teamBitboards, long adversaryBitboards, long adversaryPawnEnpassantBitboards, Piece[] teamRooks, boolean attack) {
+        boolean moved = piece.isMoved();
+        boolean team = piece.getTeam();
+        long pieceBitboard = piece.getBitboard();
+        long bitboards = teamBitboards | adversaryBitboards;
+
+        long h, v, kn, k, d1, d2, castle;
+        long[] d;
+        long[] splitMasks;
+
+        switch (piece.getType()) {
+            case ROOK:
+                h = (Bitboard.getHorizontalMoves(piece, bitboards) & (~teamBitboards)) | pieceBitboard;
+                v = (Bitboard.getVerticalMoves(piece, bitboards) & (~teamBitboards)) | pieceBitboard;
+                splitMasks = new long[]{h, v};
+                break;
+            case KNIGHT:
+                kn = (Bitboard.getKnightMoves(piece) & (~teamBitboards)) | pieceBitboard;
+                splitMasks = new long[]{kn};
+                break;
+            case BISHOP:
+                d = Bitboard.getDiagonalMoves(piece, bitboards);
+                d1 = (d[0] & ~teamBitboards) | pieceBitboard;
+                d2 = (d[1] & ~teamBitboards) | pieceBitboard;
+                splitMasks = new long[]{d1, d2};
+                break;
+            case QUEEN:
+                d = Bitboard.getDiagonalMoves(piece, bitboards);
+                d1 = (d[0] & ~teamBitboards) | pieceBitboard;
+                d2 = (d[1] & ~teamBitboards) | pieceBitboard;
+                h = (Bitboard.getHorizontalMoves(piece, bitboards) & (~teamBitboards)) | pieceBitboard;
+                v = (Bitboard.getHorizontalMoves(piece, bitboards) & (~teamBitboards)) | pieceBitboard;
+                splitMasks = new long[]{v, h, d1, d2, d1, d2};
+                break;
+            case KING:
+                k = (Bitboard.getKingMoves(piece) & ~teamBitboards) | pieceBitboard;
+                castle = Bitboard.getCastlingMoves(piece, bitboards, teamRooks) | pieceBitboard;
+                splitMasks = new long[]{k, castle};
+                break;
+            case PAWN:
+                if (team == false) {
+                    long enpassantMask = ((pieceBitboard << 1) | (pieceBitboard >> 1)) << 8;
+                    long enpassant = (((adversaryPawnEnpassantBitboards << 8) & enpassantMask) | pieceBitboard);
+                    long mtb = (Bitboard.getBlackPawnOneStepMoves(piece) & ~bitboards);
+                    long attackMaskLeft = Bitboard.getBlackPawnLeftDiagMoves(piece);
+                    long attackMaskRight = Bitboard.getBlackPawnRightDiagMoves(piece);
+                    if (moved == false & mtb != 0) {
+                        mtb = (mtb | Bitboard.getBlackPawnTwoStepMoves(piece)) & ~bitboards;
+                    }
+                    if (attack) {
+                        mtb = 0;
+                    } else {
+                        attackMaskLeft = attackMaskLeft & adversaryBitboards;
+                        attackMaskRight = attackMaskRight & adversaryBitboards;
+                    }
+                    attackMaskLeft = attackMaskLeft | pieceBitboard;
+                    attackMaskRight = attackMaskRight | pieceBitboard;
+                    splitMasks = new long[4];
+                    splitMasks[0] = mtb;
+                    splitMasks[1] = enpassant;
+                    splitMasks[2] = attackMaskLeft;
+                    splitMasks[3] = attackMaskRight;
+                } else {
+                    long enpassantMask = ((pieceBitboard << 1) | (pieceBitboard >> 1)) >> 8;
+                    long enpassant = (((adversaryPawnEnpassantBitboards >> 8) & enpassantMask) | pieceBitboard);
+                    long mtw = (Bitboard.getWhitePawnOneStepMoves(piece) & ~bitboards);
+                    long attackMaskLeft = Bitboard.getWhitePawnLeftDiagMoves(piece);
+                    long attackMaskRight = Bitboard.getWhitePawnRightDiagMoves(piece);
+                    if (moved == false & mtw != 0) {
+                        mtw = (mtw | Bitboard.getWhitePawnTwoStepMoves(piece)) & ~bitboards;
+                    }
+                    if (attack) {
+                        mtw = 0;
+                    } else {
+                        attackMaskLeft = attackMaskLeft & adversaryBitboards;
+                        attackMaskRight = attackMaskRight & adversaryBitboards;
+                    }
+                    attackMaskLeft = attackMaskLeft | pieceBitboard;
+                    attackMaskRight = attackMaskRight | pieceBitboard;
+                    splitMasks = new long[4];
+                    splitMasks[0] = mtw;
+                    splitMasks[1] = enpassant;
+                    splitMasks[2] = attackMaskLeft;
+                    splitMasks[3] = attackMaskRight;
+                }
+            default:
+                splitMasks = new long[0];
+                break;
+        }
+        return splitMasks;
+    }
+
+    // Refactor
+    public static int[] getPositionsFromBitboard(long bitboard) {
+        int[] positions;
+        positions = new int[64];
+        Arrays.fill(positions,-1);
+        if (bitboard == 0) {
+            return positions;
+        }
+        boolean stop = false;
+        int counter = 0;
+        int iterator = 0;
+        long val = bitboard;
+        
+        while (stop == false) {
+            long newVal = val / 2;
+            long mod = val % 2;
+            if (mod == 1) {
+                positions[iterator] = counter;
+                iterator++;
+            }
+            val = newVal;
+            counter++;
+            if (val == 0) {
+                stop = true;
+            }
+        }
+        return positions;
     }
 
 }

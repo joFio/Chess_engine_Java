@@ -11,10 +11,12 @@ package chess_engine;
  */
 public class Piece {
 
-    final private PieceType pieceType;
+   
     final private boolean team; // 0 = white, black = true
 
+    private PieceType pieceType;
     private boolean moved;
+    private boolean captured;
     private long bitboard;
     private int position;
 
@@ -23,6 +25,7 @@ public class Piece {
         this.team = team;
         this.bitboard = bitboard;
         this.moved = false;
+        this.captured = false;
         this.position = Bitboard.searchPosition(bitboard);
     }
 
@@ -50,8 +53,11 @@ public class Piece {
         this.bitboard = bitboard;
         this.position = Bitboard.searchPosition(bitboard);
     }
-
     public int getPosition() {
         return this.position;
+    }
+    
+    public void promoteTo(PieceType type){
+        this.pieceType = type;
     }
 }
