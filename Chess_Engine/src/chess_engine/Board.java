@@ -5,12 +5,13 @@
 package chess_engine;
 
 import java.util.ArrayList;
+import java.util.EmptyStackException;
 import java.util.List;
 
 /**
  *
  * @author jonathan
- */
+  */
 public class Board {
 
     private List<Piece> pieces;
@@ -21,7 +22,7 @@ public class Board {
     private Piece blackKing;
 
     /**
-     * The fields below can be populated agin when pieces are promoted -> change
+     * The fields below can be populated again when pieces are promoted -> change
      * of PieceType. We use fields for each piece category to improve efficiency
      * when accessing them.
      */
@@ -143,5 +144,80 @@ public class Board {
             }
         }
     }
-
+    public Boolean getTeamPlay(){
+        return teamPlay;
+    }
+    public List<Piece> getAllPieces(){
+        return pieces;
+    }
+    public List<Piece> getTeamPieces(Boolean team){    
+        if(team){
+            return blackPieces;
+        }else {
+            return whitePieces;
+        }
+    }
+    public List<Piece> getAdversaryPieces(Boolean team){    
+        if(team){
+            return whitePieces;
+        }else {
+            return blackPieces;
+        }
+    }
+    public List<Piece> getTeamRooks(Boolean team){
+        if(team){
+            return blackRooks;
+        }else {
+            return whiteRooks;
+        }
+    }
+    public List<Piece> getAdversaryRooks(Boolean team){    
+        if(team){
+            return whiteRooks;
+        }else {
+            return blackRooks;
+        }
+    }
+    public List<Piece> getTeamPawns(Boolean team){
+        if(team){
+            return blackPawns;
+        }else {
+            return whitePawns;
+        }
+    }
+      public List<Piece> getAdversaryPawns(Boolean team){
+        if(team){
+            return whitePawns;
+        }else {
+            return blackPawns;
+        }
+    }
+    public Piece getTeamKing(Boolean team){
+        if(team){
+            return blackKing;
+        }
+        else {
+            return whiteKing;
+        }
+    }
+    public Piece getAdversaryKing(Boolean team){
+        if(team){
+            return whiteKing;
+        }
+        return blackKing;
+    }
+    
+    public void flipTurn(){
+        teamPlay = !teamPlay;
+    }
+    
+    public void move(int fromCase, int toCase){
+        long fromCaseBitboard = (long) Math.pow(2, fromCase);
+        long toCaseBitboard = (long) Math.pow(2, toCase);
+        long teamBitboard = Bitboard.or(this.getTeamPieces(this.teamPlay));        
+        if((fromCaseBitboard & toCaseBitboard) != 0){
+            throw new EmptyStackException();
+        }
+    }
+    
 }
