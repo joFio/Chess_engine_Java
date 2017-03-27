@@ -11,7 +11,7 @@ import java.util.List;
 /**
  *
  * @author jonathan
-  */
+ */
 public class Board {
 
     private List<Piece> pieces;
@@ -22,9 +22,9 @@ public class Board {
     private Piece blackKing;
 
     /**
-     * The fields below can be populated again when pieces are promoted -> change
-     * of PieceType. We use fields for each piece category to improve efficiency
-     * when accessing them.
+     * The fields below can be populated again when pieces are promoted ->
+     * change of PieceType. We use fields for each piece category to improve
+     * efficiency when accessing them.
      */
     private boolean teamPlay;
     private List<Piece> whitePawns;
@@ -144,80 +144,105 @@ public class Board {
             }
         }
     }
-    public Boolean getTeamPlay(){
+
+    public Boolean getTeamPlay() {
         return teamPlay;
     }
-    public List<Piece> getAllPieces(){
+
+    public List<Piece> getAllPieces() {
         return pieces;
     }
-    public List<Piece> getTeamPieces(Boolean team){    
-        if(team){
+
+    public List<Piece> getTeamPieces(Boolean team) {
+        if (team) {
             return blackPieces;
-        }else {
+        } else {
             return whitePieces;
         }
     }
-    public List<Piece> getAdversaryPieces(Boolean team){    
-        if(team){
+
+    public List<Piece> getAdversaryPieces(Boolean team) {
+        if (team) {
             return whitePieces;
-        }else {
+        } else {
             return blackPieces;
         }
     }
-    public List<Piece> getTeamRooks(Boolean team){
-        if(team){
+
+    public List<Piece> getTeamRooks(Boolean team) {
+        if (team) {
             return blackRooks;
-        }else {
+        } else {
             return whiteRooks;
         }
     }
-    public List<Piece> getAdversaryRooks(Boolean team){    
-        if(team){
+
+    public List<Piece> getAdversaryRooks(Boolean team) {
+        if (team) {
             return whiteRooks;
-        }else {
+        } else {
             return blackRooks;
         }
     }
-    public List<Piece> getTeamPawns(Boolean team){
-        if(team){
+
+    public List<Piece> getTeamPawns(Boolean team) {
+        if (team) {
             return blackPawns;
-        }else {
+        } else {
             return whitePawns;
         }
     }
-      public List<Piece> getAdversaryPawns(Boolean team){
-        if(team){
+
+    public List<Piece> getTeamKnights(Boolean team) {
+        if (team) {
+            return blackKnights;
+        } else {
+            return whiteKnights;
+        }
+    }
+
+    public List<Piece> getAdversaryKnights(Boolean team) {
+        if (team) {
+            return whiteKnights;
+        } else {
+            return blackKnights;
+        }
+    }
+
+    public List<Piece> getAdversaryPawns(Boolean team) {
+        if (team) {
             return whitePawns;
-        }else {
+        } else {
             return blackPawns;
         }
     }
-    public Piece getTeamKing(Boolean team){
-        if(team){
+
+    public Piece getTeamKing(Boolean team) {
+        if (team) {
             return blackKing;
-        }
-        else {
+        } else {
             return whiteKing;
         }
     }
-    public Piece getAdversaryKing(Boolean team){
-        if(team){
+
+    public Piece getAdversaryKing(Boolean team) {
+        if (team) {
             return whiteKing;
         }
         return blackKing;
     }
-    
-    public void flipTurn(){
+
+    public void flipTurn() {
         teamPlay = !teamPlay;
     }
-    
-    public void move(int fromCase, int toCase){
+
+    public void move(int fromCase, int toCase) {
         long fromCaseBitboard = (long) Math.pow(2, fromCase);
         long toCaseBitboard = (long) Math.pow(2, toCase);
-        long teamBitboard = Bitboard.or(this.getTeamPieces(this.teamPlay));        
-        if((fromCaseBitboard & toCaseBitboard) != 0){
+        long teamBitboard = Bitboard.or(this.getTeamPieces(this.teamPlay));
+        if ((fromCaseBitboard & toCaseBitboard) != 0) {
             throw new EmptyStackException();
         }
     }
-    
+
 }

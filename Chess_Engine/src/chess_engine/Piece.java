@@ -40,8 +40,16 @@ public class Piece {
         return this.moved;
     }
 
-    public void setMoved(boolean moved) {
-        this.moved = moved;
+    public void setMoved() {
+        this.moved = true;
+    }
+
+    public boolean isCaptured() {
+        return this.captured;
+    }
+
+    public void setCaptured() {
+        this.captured = true;
     }
 
     public long getBitboard() {

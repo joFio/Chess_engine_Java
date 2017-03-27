@@ -37,7 +37,7 @@ public class SetupConstants {
     public static final long WHITE_BISHOP_KING = 4L;
     public static final long WHITE_KNIGHT_KING = 2L;
     public static final long WHITE_ROOK_KING = 1L;
-    public static final long[] WHITE_PAWNS = new long[]{256L, 512L, 1024L, 2048L, 4096L, 8192L, 16384L, 327768L};
+    public static final long[] WHITE_PAWNS = new long[]{256L, 512L, 1024L, 2048L, 4096L, 8192L, 16384L, 32768L};
 
     // Black piece positions
     public static final long BLACK_ROOK_QUEEN = Long.MIN_VALUE;
