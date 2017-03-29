@@ -5,12 +5,9 @@
  */
 package chess_engine;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * This set of methods perform operations on bitboards. Bitboards are 64-bit
@@ -34,6 +31,22 @@ public class Bitboard {
             String row = binary.substring(i * 8, ((i + 1) * 8));
             System.out.println(row);
         }
+        System.out.println("");
+    }
+
+    public static void outWithRulers(long number) {
+        String bs = Long.toBinaryString(number);
+        int count = 64 - bs.length();
+        String repeated = new String(new char[count]).replace("\0", "0");
+        String binary = repeated.concat(bs);
+        for (int i = 0; i < 8; ++i) {
+            String row = binary.substring(i * 8, ((i + 1) * 8));
+            System.out.print((8 - i) + " | ");
+            System.out.println(row);
+        }
+           
+        System.out.println("    --------");
+        System.out.println("    ABCDEFGH");
         System.out.println("");
     }
 
@@ -743,5 +756,4 @@ public class Bitboard {
         }
         return moves == 0;
     }
-
 }

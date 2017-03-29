@@ -7,12 +7,13 @@ package chess_engine;
 import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
  * @author jonathan
  */
-public class Board {
+public final class Board {
 
     private List<Piece> pieces;
     private List<Piece> whitePieces;
@@ -20,7 +21,8 @@ public class Board {
 
     private Piece whiteKing;
     private Piece blackKing;
-
+    private boolean check;
+    private boolean mate;
     /**
      * The fields below can be populated again when pieces are promoted ->
      * change of PieceType. We use fields for each piece category to improve
@@ -37,6 +39,26 @@ public class Board {
     private List<Piece> blackKnights;
     private List<Piece> blackBishops;
     private List<Piece> blackQueens;
+
+    private Board(Board board) {
+        pieces = board.pieces.stream().map((x) -> new Piece(x)).collect(Collectors.toList());
+        whitePieces = new ArrayList<>();
+        whitePawns = new ArrayList<>();
+        whiteRooks = new ArrayList<>();
+        whiteKnights = new ArrayList<>();
+        whiteBishops = new ArrayList<>();
+        whiteQueens = new ArrayList<>();
+        blackPieces = new ArrayList<>();
+        blackPawns = new ArrayList<>();
+        blackRooks = new ArrayList<>();
+        blackKnights = new ArrayList<>();
+        blackBishops = new ArrayList<>();
+        blackQueens = new ArrayList<>();
+        this.teamPlay = board.teamPlay;
+        this.check = board.check;
+        this.mate = board.mate;
+        this.refresh();
+    }
 
     Board() {
         whiteKing = new Piece(SetupConstants.WHITE_KING, PieceType.KING, false);
@@ -57,6 +79,7 @@ public class Board {
         whiteBishops.add(new Piece(SetupConstants.WHITE_BISHOP_QUEEN, PieceType.BISHOP, false));
         whiteBishops.add(new Piece(SetupConstants.WHITE_BISHOP_KING, PieceType.BISHOP, false));
         whiteQueens.add(new Piece(SetupConstants.WHITE_QUEEN, PieceType.QUEEN, false));
+        whitePieces.add(whiteKing);
 
         whitePieces.addAll(whiteRooks);
         whitePieces.addAll(whiteKnights);
@@ -81,6 +104,7 @@ public class Board {
         blackBishops.add(new Piece(SetupConstants.BLACK_BISHOP_QUEEN, PieceType.BISHOP, true));
         blackBishops.add(new Piece(SetupConstants.BLACK_BISHOP_KING, PieceType.BISHOP, true));
         blackQueens.add(new Piece(SetupConstants.BLACK_QUEEN, PieceType.QUEEN, true));
+        blackPieces.add(blackKing);
         blackPieces.addAll(blackPawns);
         blackPieces.addAll(blackRooks);
         blackPieces.addAll(blackKnights);
@@ -95,6 +119,8 @@ public class Board {
      * used when promoting pieces
      */
     public void refresh() {
+        whitePieces.clear();
+        blackPieces.clear();
         whitePawns.clear();
         blackPawns.clear();
         whiteRooks.clear();
@@ -105,42 +131,51 @@ public class Board {
         blackBishops.clear();
         whiteQueens.clear();
         blackQueens.clear();
-        for (Piece piece : whitePieces) {
-            switch (piece.getType()) {
-                case PAWN:
-                    whitePawns.add(piece);
-                    break;
-                case ROOK:
-                    whiteRooks.add(piece);
-                    break;
-                case KNIGHT:
-                    whiteKnights.add(piece);
-                    break;
-                case BISHOP:
-                    whiteBishops.add(piece);
-                    break;
-                case QUEEN:
-                    whiteQueens.add(piece);
-                    break;
-            }
-        }
-        for (Piece piece : blackPieces) {
-            switch (piece.getType()) {
-                case PAWN:
-                    blackPawns.add(piece);
-                    break;
-                case ROOK:
-                    blackRooks.add(piece);
-                    break;
-                case KNIGHT:
-                    blackKnights.add(piece);
-                    break;
-                case BISHOP:
-                    blackBishops.add(piece);
-                    break;
-                case QUEEN:
-                    blackQueens.add(piece);
-                    break;
+        for (Piece piece : pieces) {
+            if (piece.getTeam() == false) {
+                whitePieces.add(piece);
+                switch (piece.getType()) {
+                    case PAWN:
+                        whitePawns.add(piece);
+                        break;
+                    case ROOK:
+                        whiteRooks.add(piece);
+                        break;
+                    case KNIGHT:
+                        whiteKnights.add(piece);
+                        break;
+                    case BISHOP:
+                        whiteBishops.add(piece);
+                        break;
+                    case QUEEN:
+                        whiteQueens.add(piece);
+                        break;
+                    case KING:
+                        whiteKing = piece;
+                        break;
+                }
+            } else {
+                blackPieces.add(piece);
+                switch (piece.getType()) {
+                    case PAWN:
+                        blackPawns.add(piece);
+                        break;
+                    case ROOK:
+                        blackRooks.add(piece);
+                        break;
+                    case KNIGHT:
+                        blackKnights.add(piece);
+                        break;
+                    case BISHOP:
+                        blackBishops.add(piece);
+                        break;
+                    case QUEEN:
+                        blackQueens.add(piece);
+                        break;
+                    case KING:
+                        blackKing = piece;
+                        break;
+                }
             }
         }
     }
@@ -236,6 +271,18 @@ public class Board {
         teamPlay = !teamPlay;
     }
 
+    public boolean isCheck() {
+        return check;
+    }
+
+    public boolean isCheckmate() {
+        return (mate & check);
+    }
+
+    public boolean isStalemate() {
+        return (mate & check == false);
+    }
+
     public void move(int fromCase, int toCase) {
         long fromCaseBitboard = (long) Math.pow(2, fromCase);
         long toCaseBitboard = (long) Math.pow(2, toCase);
@@ -243,6 +290,98 @@ public class Board {
         if ((fromCaseBitboard & toCaseBitboard) != 0) {
             throw new EmptyStackException();
         }
+    }
+
+    public Piece getPieceWithBitboard(long bitboard) throws BoardException {
+        return pieces.stream().filter((p) -> p.getBitboard() == bitboard).findFirst().orElseThrow(() -> new BoardException(ExceptionConstants.CannotFindPiece));
+    }
+
+    public static Board getBoardForMove(int fromCase, int toCase, boolean team, Board board) throws BoardException {
+        Board newBoard = new Board(board);
+        long fromCaseBitboard = (long) Math.pow(2, fromCase);
+        long toCaseBitboard = (long) Math.pow(2, toCase);
+        long teamBitboard = Bitboard.or(newBoard.getTeamPieces(team));
+        long adversaryBitboard = Bitboard.or(newBoard.getAdversaryPieces(team));
+
+        if ((fromCaseBitboard & toCaseBitboard) != 0) {
+            throw new BoardException(ExceptionConstants.CannotMoveToSameCase);
+        }
+        if ((fromCaseBitboard & teamBitboard) == 0) {
+            throw new BoardException(ExceptionConstants.DoesNotOwnPiece);
+        }
+        if ((toCaseBitboard & teamBitboard) != 0) {
+            throw new BoardException(ExceptionConstants.CannotCaptureOwnPiece);
+        }
+        Piece pieceFrom = newBoard.getPieceWithBitboard(fromCaseBitboard);
+        long moves = Bitboard.getMoves(pieceFrom, newBoard);
+
+        if ((toCaseBitboard & moves) == 0) {
+            throw new BoardException(ExceptionConstants.MoveImpossible);
+        }
+        long capturedPieceBitboard = 0;
+        if ((toCaseBitboard & adversaryBitboard) != 0) {
+            capturedPieceBitboard = toCaseBitboard;
+        }
+        // Must check that the adversary piece is a isJustMoved Pawn!!
+        switch (pieceFrom.getType()) {
+            case KING:
+                Piece pieceSwitch;
+                if ((fromCaseBitboard) == toCaseBitboard << 2) {
+                    pieceSwitch = newBoard.getPieceWithBitboard(toCaseBitboard << 2);
+                    pieceSwitch.setBitboard(toCaseBitboard >> 1);
+                }
+                if ((fromCaseBitboard) == toCaseBitboard >> 2) {
+                    pieceSwitch = newBoard.getPieceWithBitboard(toCaseBitboard >> 1);
+                    pieceSwitch.setBitboard(toCaseBitboard << 1);
+                }
+                break;
+            case PAWN:
+                if (pieceFrom.isMoved() == false) {
+                    pieceFrom.setJustMoved();
+                }
+                if (fromCaseBitboard < toCaseBitboard) {
+                    if (((toCaseBitboard >> 8) & adversaryBitboard) != 0) {
+                        capturedPieceBitboard = toCaseBitboard >> 8;
+                    }
+                } else {
+                    if (((toCaseBitboard << 8) & adversaryBitboard) != 0) {
+                        capturedPieceBitboard = toCaseBitboard << 8;
+                    }
+                }
+                long promotionMask;
+                if (pieceFrom.getTeam()) {
+                    promotionMask = SetupConstants.PROMOTION_BLACK;
+                } else {
+                    promotionMask = SetupConstants.PROMOTION_WHITE;
+                }
+                if ((toCaseBitboard & promotionMask) != 0) {
+                    pieceFrom.promoteTo(PieceType.QUEEN);
+                    newBoard.refresh();
+                }
+        }
+        newBoard.flipTurn();
+        pieceFrom.setBitboard(toCaseBitboard);
+        pieceFrom.setMoved();
+
+        if (capturedPieceBitboard != 0) {
+            Piece capturedPiece = newBoard.getPieceWithBitboard(capturedPieceBitboard);
+            capturedPiece.setCaptured();
+        }
+
+        boolean check = Bitboard.isCheck(board, !team);
+        boolean mate = Bitboard.isMate(board, !team);
+        newBoard.mate = mate;
+        newBoard.check = check;
+        if (check & mate) {
+            System.out.println("Checkmate");
+        } else if (check) {
+            System.out.println("Check");
+        } else if (mate) {
+            System.out.println("Stalemate");
+        } else {
+            System.out.println("Next turn \n");
+        }
+        return newBoard;
     }
 
 }
