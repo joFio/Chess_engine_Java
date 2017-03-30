@@ -15,7 +15,6 @@ public class Piece {
 
     private PieceType pieceType;
     private boolean moved;
-    private boolean justMoved;
     private boolean captured;
     private long bitboard;
     private int position;
@@ -27,7 +26,6 @@ public class Piece {
         captured = piece.captured;
         bitboard = piece.bitboard;
         position = piece.position;
-        justMoved = piece.justMoved;
     }
 
     Piece(long bitboard, PieceType pieceType, boolean team) {
@@ -35,7 +33,6 @@ public class Piece {
         this.team = team;
         this.bitboard = bitboard;
         this.moved = false;
-        this.justMoved = false;
         this.captured = false;
         this.position = Bitboard.searchPosition(bitboard);
     }
@@ -53,15 +50,6 @@ public class Piece {
     }
 
     public void setMoved() {
-        this.moved = true;
-    }
-
-    public boolean isJustMoved() {
-        return this.justMoved;
-    }
-
-    public void setJustMoved() {
-        this.justMoved = !this.justMoved;
         this.moved = true;
     }
 

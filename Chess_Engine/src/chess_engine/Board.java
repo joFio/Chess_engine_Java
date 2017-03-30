@@ -19,6 +19,8 @@ public final class Board {
     private List<Piece> whitePieces;
     private List<Piece> blackPieces;
 
+    private Piece enPassantPawn;
+
     private Piece whiteKing;
     private Piece blackKing;
     private boolean check;
@@ -57,6 +59,7 @@ public final class Board {
         this.teamPlay = board.teamPlay;
         this.check = board.check;
         this.mate = board.mate;
+        this.enPassantPawn = board.enPassantPawn;
         this.refresh();
     }
 
@@ -69,6 +72,7 @@ public final class Board {
         whiteKnights = new ArrayList<>();
         whiteBishops = new ArrayList<>();
         whiteQueens = new ArrayList<>();
+        enPassantPawn = null;
         for (int i = 0; i < SetupConstants.WHITE_PAWNS.length; i++) {
             whitePawns.add(new Piece(SetupConstants.WHITE_PAWNS[i], PieceType.PAWN, false));
         }
@@ -220,14 +224,6 @@ public final class Board {
         }
     }
 
-    public List<Piece> getTeamPawns(Boolean team) {
-        if (team) {
-            return blackPawns;
-        } else {
-            return whitePawns;
-        }
-    }
-
     public List<Piece> getTeamKnights(Boolean team) {
         if (team) {
             return blackKnights;
@@ -241,6 +237,26 @@ public final class Board {
             return whiteKnights;
         } else {
             return blackKnights;
+        }
+    }
+
+    public void setEnPassantPawn(Piece piece) {
+        this.enPassantPawn = piece;
+    }
+
+    public void setEnPassantPawnToNull() {
+        this.enPassantPawn = null;
+    }
+
+    public Piece getEnPassantPawn() {
+        return enPassantPawn;
+    }
+
+    public List<Piece> getTeamPawns(Boolean team) {
+        if (team) {
+            return blackPawns;
+        } else {
+            return whitePawns;
         }
     }
 
@@ -293,7 +309,7 @@ public final class Board {
     }
 
     public Piece getPieceWithBitboard(long bitboard) throws BoardException {
-        return pieces.stream().filter((p) -> p.getBitboard() == bitboard).findFirst().orElseThrow(() -> new BoardException(ExceptionConstants.CannotFindPiece));
+        return pieces.stream().filter((p) -> ((p.getBitboard() == bitboard) & (!p.isCaptured()))).findFirst().orElseThrow(() -> new BoardException(ExceptionConstants.CannotFindPiece));
     }
 
     public static Board getBoardForMove(int fromCase, int toCase, boolean team, Board board) throws BoardException {
@@ -313,7 +329,7 @@ public final class Board {
             throw new BoardException(ExceptionConstants.CannotCaptureOwnPiece);
         }
         Piece pieceFrom = newBoard.getPieceWithBitboard(fromCaseBitboard);
-        long moves = Bitboard.getMoves(pieceFrom, newBoard);
+        long moves = Bitboard.getLegalMoves(pieceFrom, newBoard);
 
         if ((toCaseBitboard & moves) == 0) {
             throw new BoardException(ExceptionConstants.MoveImpossible);
@@ -323,6 +339,7 @@ public final class Board {
             capturedPieceBitboard = toCaseBitboard;
         }
         // Must check that the adversary piece is a isJustMoved Pawn!!
+        newBoard.setEnPassantPawnToNull();
         switch (pieceFrom.getType()) {
             case KING:
                 Piece pieceSwitch;
@@ -336,9 +353,6 @@ public final class Board {
                 }
                 break;
             case PAWN:
-                if (pieceFrom.isMoved() == false) {
-                    pieceFrom.setJustMoved();
-                }
                 if (fromCaseBitboard < toCaseBitboard) {
                     if (((toCaseBitboard >> 8) & adversaryBitboard) != 0) {
                         capturedPieceBitboard = toCaseBitboard >> 8;
@@ -347,6 +361,9 @@ public final class Board {
                     if (((toCaseBitboard << 8) & adversaryBitboard) != 0) {
                         capturedPieceBitboard = toCaseBitboard << 8;
                     }
+                }
+                if ((fromCaseBitboard == toCaseBitboard << 16) | (fromCaseBitboard == toCaseBitboard << 16)) {
+                    newBoard.setEnPassantPawn(pieceFrom);
                 }
                 long promotionMask;
                 if (pieceFrom.getTeam()) {
@@ -359,14 +376,14 @@ public final class Board {
                     newBoard.refresh();
                 }
         }
-        newBoard.flipTurn();
-        pieceFrom.setBitboard(toCaseBitboard);
-        pieceFrom.setMoved();
 
         if (capturedPieceBitboard != 0) {
             Piece capturedPiece = newBoard.getPieceWithBitboard(capturedPieceBitboard);
             capturedPiece.setCaptured();
         }
+        newBoard.flipTurn();
+        pieceFrom.setBitboard(toCaseBitboard);
+        pieceFrom.setMoved();
 
         boolean check = Bitboard.isCheck(board, !team);
         boolean mate = Bitboard.isMate(board, !team);

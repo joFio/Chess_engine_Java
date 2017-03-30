@@ -44,7 +44,7 @@ public class Bitboard {
             System.out.print((8 - i) + " | ");
             System.out.println(row);
         }
-           
+
         System.out.println("    --------");
         System.out.println("    ABCDEFGH");
         System.out.println("");
@@ -97,6 +97,121 @@ public class Bitboard {
         return bound;
     }
 
+    public static boolean isCheck(Board board, Boolean team) {
+        List<Piece> adversaryPieces = board.getAdversaryPieces(team);
+        Piece teamKing = board.getTeamKing(team);
+        return adversaryPieces.stream().map((piece) -> Bitboard.getLegalMoves(piece, board)).anyMatch((threatBitboard) -> ((threatBitboard & teamKing.getBitboard()) != 0));
+    }
+
+    public static boolean isMate(Board board, Boolean team) {
+        List<Piece> teamPieces = board.getTeamPieces(team);
+        long moves = 0L;
+        for (Piece piece : teamPieces) {
+            long pieceMove = (Bitboard.getLegalMoves(piece, board)) ^ piece.getBitboard();
+            moves = moves | pieceMove;
+        }
+        return moves == 0;
+    }
+
+    // Check if component include piece. Do not include mask in return value -> create other method that compiles
+    /**
+     * Applies "or" operator to all components of an array of long
+     *
+     * @param bitboards
+     * @return
+     */
+    public static long or(long[] bitboards) {
+        int k = bitboards.length;
+        long mask = 0L;
+        for (int i = 0; i < k; i++) {
+            mask = mask | bitboards[i];
+        }
+        return mask;
+    }
+
+    public static long or(List<Piece> pieces) {
+        long mask = 0L;
+        for (Piece piece : pieces) {
+            mask = mask | piece.getBitboard();
+        }
+        return mask;
+    }
+
+    public static long and(long[] bitboards) {
+        int k = bitboards.length;
+        long mask = 0L;
+        for (int i = 0; i < k; i++) {
+            mask = mask & bitboards[i];
+        }
+        return mask;
+    }
+
+    public static long and(List<Piece> pieces) {
+        long mask = 0L;
+        for (Piece piece : pieces) {
+            mask = mask & piece.getBitboard();
+        }
+        return mask;
+    }
+
+    public static long getLegalMoves(Piece piece, Board board) {
+        Boolean team = piece.getTeam();
+        long pieceBitboard = piece.getBitboard();
+        long teamBitboard = Bitboard.or(board.getTeamPieces(team));
+        long adversaryBitboard = Bitboard.or(board.getAdversaryPieces(team));
+        long teamPawnsBitboard = Bitboard.or(board.getTeamPawns(team));
+        long adversaryPawnsBitboard = 0L;
+        if (board.getEnPassantPawn() != null) {
+            adversaryPawnsBitboard = board.getEnPassantPawn().getBitboard();
+        }
+
+        Piece teamKing = board.getTeamKing(team);
+        List<Piece> adversaryPieces = board.getAdversaryPieces(team);
+        List<Piece> teamRooks = board.getTeamRooks(team);
+        List<Piece> adversaryRooks = board.getAdversaryRooks(team);
+        long[] splitMoves = Bitboard.getMoves(piece, teamBitboard, adversaryBitboard, adversaryPawnsBitboard, teamRooks, false);
+        long moves = Bitboard.or(splitMoves);
+        long teamBitboardWithoutPiece = pieceBitboard ^ teamBitboard;
+        List<Piece> threatPieces = adversaryPieces.stream().filter((p) -> p.isCaptured() == false).collect(Collectors.toList());
+        for (Piece pce : threatPieces) {
+            if (piece.getType() == PieceType.KING) {
+                long adversaryBitboardWithoutKingAttack = ((~moves) & adversaryBitboard);
+                long teamBitboardWithoutKingWithKingAttack = teamBitboardWithoutPiece | (moves & adversaryBitboard);
+                long[] splitThreatBitboard = Bitboard.getMoves(pce, adversaryBitboardWithoutKingAttack, teamBitboardWithoutKingWithKingAttack, teamPawnsBitboard, adversaryRooks, true);
+                long threatBitboard = Bitboard.or(splitThreatBitboard);
+                moves = moves & ~(threatBitboard ^ pce.getBitboard());
+                if (!piece.isMoved()) {
+                    for (int i = 0; i < splitThreatBitboard.length; i++) {
+                        long queenSideCheckMask = pieceBitboard << 1;
+                        long kingSideCheckMask = pieceBitboard >> 1;
+                        if ((splitThreatBitboard[i] & queenSideCheckMask) != 0) {
+                            moves = moves ^ (pieceBitboard << 2);
+                            break;
+                        }
+                        if ((splitThreatBitboard[i] & kingSideCheckMask) != 0) {
+                            moves = moves ^ (pieceBitboard >> 2);
+                            moves = moves ^ (pieceBitboard << 2);
+                            break;
+                        }
+
+                    }
+                }
+            } else {
+                long[] splitThreatBitboard = Bitboard.getMoves(pce, adversaryBitboard, teamBitboardWithoutPiece, teamPawnsBitboard, adversaryRooks, true);
+                long threatBitboard = Bitboard.or(splitThreatBitboard);
+                if ((threatBitboard & teamKing.getBitboard()) != 0) {
+                    for (int i = 0; i < splitThreatBitboard.length; i++) {
+                        if ((splitThreatBitboard[i] & teamKing.getBitboard()) != 0) {
+                            moves = moves & splitThreatBitboard[i];
+                        }
+                    }
+                }
+
+            }
+        }
+        return moves;
+    }
+
     /**
      * This method returns the bitboard containing all the possible vertical
      * moves for the piece with the current bitboards.
@@ -106,7 +221,7 @@ public class Bitboard {
      * representing the cases which the piece cannot move to.
      * @return
      */
-    public static long getVerticalMoves(Piece piece, long bitboards) {
+    private static long getVerticalMoves(Piece piece, long bitboards) {
         long bitboard = piece.getBitboard();
         int position = piece.getPosition();
         int row = position / 8;
@@ -143,7 +258,7 @@ public class Bitboard {
      * representing the cases which the piece cannot move to.
      * @return
      */
-    public static long getHorizontalMoves(Piece piece, long bitboards) {
+    private static long getHorizontalMoves(Piece piece, long bitboards) {
         long bitboard = piece.getBitboard();
         int position = piece.getPosition();
 
@@ -181,7 +296,7 @@ public class Bitboard {
      * representing the cases which the piece cannot move to.
      * @return Returns 2 bitboards: left-to-right and right-to-left
      */
-    public static long[] getDiagonalMoves(Piece piece, long bitboards) {
+    private static long[] getDiagonalMoves(Piece piece, long bitboards) {
         long bitboard = piece.getBitboard();
         int position = piece.getPosition();
         int col = position % 8;
@@ -260,7 +375,7 @@ public class Bitboard {
      * @param piece This is the piece which we generate moves for.
      * @return return bitboard
      */
-    public static long getKnightMoves(Piece piece) {
+    private static long getKnightMoves(Piece piece) {
         long bitboard = piece.getBitboard();
         int position = piece.getPosition();
         int col = position % 8;
@@ -301,7 +416,7 @@ public class Bitboard {
      * @param rooks
      * @return
      */
-    public static long getCastlingMoves(Piece piece, long bitboards, List<Piece> rooks) {
+    private static long getCastlingMoves(Piece piece, long bitboards, List<Piece> rooks) {
         long bitboard = piece.getBitboard();
         long mask = bitboard;
         if (piece.isMoved() == false) {
@@ -340,7 +455,7 @@ public class Bitboard {
      * @param piece This is the piece which we generate moves for.
      * @return return bitboard
      */
-    public static long getKingMoves(Piece piece) {
+    private static long getKingMoves(Piece piece) {
         long bitboard = piece.getBitboard();
         int position = piece.getPosition();
         int col = position % 8;
@@ -380,7 +495,7 @@ public class Bitboard {
      * @param piece This is the piece which we generate moves for.
      * @return return bitboard
      */
-    public static long getBlackPawnOneStepMoves(Piece piece) {
+    private static long getBlackPawnOneStepMoves(Piece piece) {
         long bitboard = piece.getBitboard();
         int position = piece.getPosition();
         int row = position / 8;
@@ -398,7 +513,7 @@ public class Bitboard {
      * @param piece This is the piece which we generate moves for.
      * @return return bitboard
      */
-    public static long getBlackPawnTwoStepMoves(Piece piece) {
+    private static long getBlackPawnTwoStepMoves(Piece piece) {
         long bitboard = piece.getBitboard();
         int position = piece.getPosition();
         int row = position / 8;
@@ -416,7 +531,7 @@ public class Bitboard {
      * @param piece This is the piece which we generate moves for.
      * @return return bitboard
      */
-    public static long getWhitePawnOneStepMoves(Piece piece) {
+    private static long getWhitePawnOneStepMoves(Piece piece) {
         long bitboard = piece.getBitboard();
         int position = piece.getPosition();
         int row = position / 8;
@@ -434,7 +549,7 @@ public class Bitboard {
      * @param piece This is the piece which we generate moves for.
      * @return return bitboard
      */
-    public static long getWhitePawnTwoStepMoves(Piece piece) {
+    private static long getWhitePawnTwoStepMoves(Piece piece) {
         long bitboard = piece.getBitboard();
         int position = piece.getPosition();
         int row = position / 8;
@@ -452,7 +567,7 @@ public class Bitboard {
      * @param piece This is the piece which we generate moves for.
      * @return return bitboard
      */
-    public static long getWhitePawnRightDiagMoves(Piece piece) {
+    private static long getWhitePawnRightDiagMoves(Piece piece) {
         long bitboard = piece.getBitboard();
         int position = piece.getPosition();
         int row = position / 8;
@@ -471,7 +586,7 @@ public class Bitboard {
      * @param piece This is the piece which we generate moves for.
      * @return return bitboard
      */
-    public static long getWhitePawnLeftDiagMoves(Piece piece) {
+    private static long getWhitePawnLeftDiagMoves(Piece piece) {
         long bitboard = piece.getBitboard();
         int position = piece.getPosition();
         int row = position / 8;
@@ -490,7 +605,7 @@ public class Bitboard {
      * @param piece This is the piece which we generate moves for.
      * @return return bitboard
      */
-    public static long getBlackPawnRightDiagMoves(Piece piece) {
+    private static long getBlackPawnRightDiagMoves(Piece piece) {
         long bitboard = piece.getBitboard();
         int position = piece.getPosition();
         int row = position / 8;
@@ -509,7 +624,7 @@ public class Bitboard {
      * @param piece This is the piece which we generate moves for.
      * @return return bitboard
      */
-    public static long getBlackPawnLeftDiagMoves(Piece piece) {
+    private static long getBlackPawnLeftDiagMoves(Piece piece) {
         long bitboard = piece.getBitboard();
         int position = piece.getPosition();
         int row = position / 8;
@@ -521,103 +636,7 @@ public class Bitboard {
         return mask;
     }
 
-    // Check if component include piece. Do not include mask in return value -> create other method that compiles
-    /**
-     * Applies "or" operator to all components of an array of long
-     *
-     * @param bitboards
-     * @return
-     */
-    public static long or(long[] bitboards) {
-        int k = bitboards.length;
-        long mask = 0L;
-        for (int i = 0; i < k; i++) {
-            mask = mask | bitboards[i];
-        }
-        return mask;
-    }
-
-    public static long or(List<Piece> pieces) {
-        long mask = 0L;
-        for (Piece piece : pieces) {
-            mask = mask | piece.getBitboard();
-        }
-        return mask;
-    }
-
-    public static long and(long[] bitboards) {
-        int k = bitboards.length;
-        long mask = 0L;
-        for (int i = 0; i < k; i++) {
-            mask = mask & bitboards[i];
-        }
-        return mask;
-    }
-
-    public static long and(List<Piece> pieces) {
-        long mask = 0L;
-        for (Piece piece : pieces) {
-            mask = mask & piece.getBitboard();
-        }
-        return mask;
-    }
-
-    public static long getMoves(Piece piece, Board board) {
-        Boolean team = piece.getTeam();
-        long pieceBitboard = piece.getBitboard();
-        long teamBitboard = Bitboard.or(board.getTeamPieces(team));
-        long adversaryBitboard = Bitboard.or(board.getAdversaryPieces(team));
-        long teamPawnsBitboard = Bitboard.or(board.getTeamPawns(team));
-        long adversaryPawnsBitboard = Bitboard.or(board.getAdversaryPawns(team));
-
-        Piece teamKing = board.getTeamKing(team);
-        List<Piece> adversaryPieces = board.getAdversaryPieces(team);
-        List<Piece> teamRooks = board.getTeamRooks(team);
-        List<Piece> adversaryRooks = board.getAdversaryRooks(team);
-        long[] splitMoves = Bitboard.getPlainMoves(piece, teamBitboard, adversaryBitboard, adversaryPawnsBitboard, teamRooks, false);
-        long moves = Bitboard.or(splitMoves);
-        long teamBitboardWithoutPiece = pieceBitboard ^ teamBitboard;
-        List<Piece> threatPieces = adversaryPieces.stream().filter((p) -> p.isCaptured() == false).collect(Collectors.toList());
-        for (Piece pce : threatPieces) {
-            if (piece.getType() == PieceType.KING) {
-                long adversaryBitboardWithoutKingAttack = ((~moves) & adversaryBitboard);
-                long teamBitboardWithoutKingWithKingAttack = teamBitboardWithoutPiece | (moves & adversaryBitboard);
-                long[] splitThreatBitboard = Bitboard.getPlainMoves(pce, adversaryBitboardWithoutKingAttack, teamBitboardWithoutKingWithKingAttack, teamPawnsBitboard, adversaryRooks, true);
-                long threatBitboard = Bitboard.or(splitThreatBitboard);
-                moves = moves & ~(threatBitboard ^ pce.getBitboard());
-                if (!piece.isMoved()) {
-                    for (int i = 0; i < splitThreatBitboard.length; i++) {
-                        long queenSideCheckMask = pieceBitboard << 1;
-                        long kingSideCheckMask = pieceBitboard >> 1;
-                        if ((splitThreatBitboard[i] & queenSideCheckMask) != 0) {
-                            moves = moves ^ (pieceBitboard << 2);
-                            break;
-                        }
-                        if ((splitThreatBitboard[i] & kingSideCheckMask) != 0) {
-                            moves = moves ^ (pieceBitboard >> 2);
-                            moves = moves ^ (pieceBitboard << 2);
-                            break;
-                        }
-
-                    }
-                }
-            } else {
-                long[] splitThreatBitboard = Bitboard.getPlainMoves(pce, adversaryBitboard, teamBitboardWithoutPiece, teamPawnsBitboard, adversaryRooks, true);
-                long threatBitboard = Bitboard.or(splitThreatBitboard);
-                if ((threatBitboard & teamKing.getBitboard()) != 0) {
-                    for (int i = 0; i < splitThreatBitboard.length; i++) {
-                        if ((splitThreatBitboard[i] & teamKing.getBitboard()) != 0) {
-                            moves = moves & splitThreatBitboard[i];
-                        }
-                    }
-                }
-
-            }
-        }
-        return moves;
-    }
-
-    public static long[] getPlainMoves(Piece piece, long teamBitboard, long adversaryBitboard, long adversaryPawnsBitboard, List<Piece> teamRooks, boolean attack) {
+    private static long[] getMoves(Piece piece, long teamBitboard, long adversaryBitboard, long adversaryPawnsBitboard, List<Piece> teamRooks, boolean attack) {
         boolean moved = piece.isMoved();
         boolean team = piece.getTeam();
         long pieceBitboard = piece.getBitboard();
@@ -709,11 +728,11 @@ public class Bitboard {
         return splitMasks;
     }
 
-    public static long[] getPlainMoves(Piece piece, long teamBitboard, long adversaryBitboard, long adversaryPawnsBitboard, List<Piece> teamRooks) {
-        return getPlainMoves(piece, teamBitboard, adversaryBitboard, adversaryPawnsBitboard, teamRooks, false);
+    private static long[] getMoves(Piece piece, long teamBitboard, long adversaryBitboard, long adversaryPawnsBitboard, List<Piece> teamRooks) {
+        return getMoves(piece, teamBitboard, adversaryBitboard, adversaryPawnsBitboard, teamRooks, false);
     }
 
-    public static int[] getPositionsFromBitboard(long bitboard) {
+    private static int[] getPositionsFromBitboard(long bitboard) {
         int[] positions;
         positions = new int[64];
         Arrays.fill(positions, -1);
@@ -741,19 +760,4 @@ public class Bitboard {
         return positions;
     }
 
-    public static boolean isCheck(Board board, Boolean team) {
-        List<Piece> adversaryPieces = board.getAdversaryPieces(team);
-        Piece teamKing = board.getTeamKing(team);
-        return adversaryPieces.stream().map((piece) -> Bitboard.getMoves(piece, board)).anyMatch((threatBitboard) -> ((threatBitboard & teamKing.getBitboard()) != 0));
-    }
-
-    public static boolean isMate(Board board, Boolean team) {
-        List<Piece> teamPieces = board.getTeamPieces(team);
-        long moves = 0L;
-        for (Piece piece : teamPieces) {
-            long pieceMove = (Bitboard.getMoves(piece, board)) ^ piece.getBitboard();
-            moves = moves | pieceMove;
-        }
-        return moves == 0;
-    }
 }

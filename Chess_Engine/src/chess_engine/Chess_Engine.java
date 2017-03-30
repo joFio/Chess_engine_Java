@@ -28,13 +28,20 @@ public class Chess_Engine {
         Boolean team = false;
 
         while (!board.isCheckmate() & !board.isStalemate()) {
-            System.out.println("Enter the case of the piece which you would like to move");
+            System.out.println("Enter case from:");
             char[] from_char = userInput.next().toCharArray();
             int from_col = 8 - (Character.getNumericValue(from_char[0]) - 9);
             int from_row = Character.getNumericValue(from_char[1]) - 1;
-
-            System.out.println("Enter the case to which you would like to move your piece");
+            while ((from_char.length != 2)) {
+                System.out.println("Enter case from:");
+                from_char = userInput.next().toCharArray();
+            }
+            System.out.println("Enter case to:");
             char[] to_char = userInput.next().toCharArray();
+            while ((to_char.length != 2)) {
+                System.out.println("Enter case to:");
+                to_char = userInput.next().toCharArray();
+            }
             int to_col = 8 - (Character.getNumericValue(to_char[0]) - 9);
             int to_row = Character.getNumericValue(to_char[1]) - 1;
             int from = from_col + from_row * 8;
