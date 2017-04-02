@@ -34,6 +34,60 @@ public class Bitboard {
         System.out.println("");
     }
 
+    public static void outWithChequerBoard(Board board) {
+        String[] boardString = new String[64];
+        List<Piece> pieces =  board.getAllPieces().stream().filter((p) -> !p.isCaptured()).collect(Collectors.toList());
+        for (Piece piece : pieces) {
+            int position = piece.getPosition();
+            String symbol = "";
+            switch (piece.getType()) {
+                case PAWN:
+                    symbol = symbol + "P ";
+                    break;
+                case ROOK:
+                    symbol = symbol + "R ";
+                    break;
+                case KNIGHT:
+                    symbol = symbol + "N ";
+                    break;
+                case BISHOP:
+                    symbol = symbol + "B ";
+                    break;
+                case QUEEN:
+                    symbol = symbol + "Q ";
+                    break;
+                case KING:
+                    symbol = symbol + "K ";
+                    break;
+            }
+            if (piece.getTeam()) {
+                symbol = "." + symbol;
+            } else {
+                symbol = "-" + symbol;
+            }
+            boardString[position] = symbol;
+
+        }
+        for (int i = (boardString.length - 1); i >= 0; i--) {
+
+            if (((i + 1) % 8) == 0) {
+                System.out.print(((i + 1) / 8) + " | ");
+            }
+            if (boardString[i] != null) {
+                System.out.print(boardString[i]);
+            } else {
+                System.out.print(" O ");
+            }
+            if (((i) % 8) == 0) {
+                System.out.println("");
+            }
+        }
+        System.out.println("     -  -  -  -  -  -  -  -");
+        System.out.println("     A  B  C  D  E  F  G  H");
+        System.out.println("");
+
+    }
+
     public static void outWithRulers(long number) {
         String bs = Long.toBinaryString(number);
         int count = 64 - bs.length();
@@ -72,7 +126,10 @@ public class Bitboard {
      */
     //TODO throw exception if more than one bit is on
     public static int searchPosition(long bitboard) {
-        if (bitboard == 0) {
+        if (bitboard == Long.MIN_VALUE) {
+            return 63;
+        }
+        if (bitboard == 0L) {
             return 0;
         }
         int bound = 32;

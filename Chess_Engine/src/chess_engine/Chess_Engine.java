@@ -23,7 +23,7 @@ public class Chess_Engine {
     // Interface
     public static void startGame() {
         Board board = new Board();
-        Bitboard.outWithRulers(Bitboard.or(board.getAllPieces()));
+        Bitboard.outWithChequerBoard(board);
         Scanner userInput = new Scanner(System.in);
         Boolean team = false;
 
@@ -54,7 +54,7 @@ public class Chess_Engine {
                 System.out.println(ex.getMessage());
             }
             if (success) {
-                Bitboard.outWithRulers(Bitboard.or(board.getAllPieces()));
+                Bitboard.outWithChequerBoard(board);
                 team = !team;
             }
         }
