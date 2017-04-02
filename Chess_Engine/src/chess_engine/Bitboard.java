@@ -42,28 +42,28 @@ public class Bitboard {
             String symbol = "";
             switch (piece.getType()) {
                 case PAWN:
-                    symbol = symbol + "P ";
+                    symbol = symbol + " P";
                     break;
                 case ROOK:
-                    symbol = symbol + "R ";
+                    symbol = symbol + " R";
                     break;
                 case KNIGHT:
-                    symbol = symbol + "N ";
+                    symbol = symbol + " N";
                     break;
                 case BISHOP:
-                    symbol = symbol + "B ";
+                    symbol = symbol + " B";
                     break;
                 case QUEEN:
-                    symbol = symbol + "Q ";
+                    symbol = symbol + " Q";
                     break;
                 case KING:
-                    symbol = symbol + "K ";
+                    symbol = symbol + " K";
                     break;
             }
             if (piece.getTeam()) {
-                symbol = "." + symbol;
+                symbol  = symbol + "+";
             } else {
-                symbol = "-" + symbol;
+                symbol = symbol + "-";
             }
             boardString[position] = symbol;
 
@@ -723,7 +723,7 @@ public class Bitboard {
                 d1 = (d[0] & ~teamBitboard) | pieceBitboard;
                 d2 = (d[1] & ~teamBitboard) | pieceBitboard;
                 h = (Bitboard.getHorizontalMoves(piece, bitboards) & (~teamBitboard)) | pieceBitboard;
-                v = (Bitboard.getHorizontalMoves(piece, bitboards) & (~teamBitboard)) | pieceBitboard;
+                v = (Bitboard.getVerticalMoves(piece, bitboards) & (~teamBitboard)) | pieceBitboard;
                 splitMasks = new long[]{v, h, d1, d2, d1, d2};
                 break;
             case KING:

@@ -362,7 +362,7 @@ public final class Board {
                         capturedPieceBitboard = toCaseBitboard << 8;
                     }
                 }
-                if ((fromCaseBitboard == toCaseBitboard << 16) | (fromCaseBitboard == toCaseBitboard << 16)) {
+                if ((fromCaseBitboard == toCaseBitboard << 16) | (fromCaseBitboard == toCaseBitboard >> 16)) {
                     newBoard.setEnPassantPawn(pieceFrom);
                 }
                 long promotionMask;
@@ -385,10 +385,10 @@ public final class Board {
         pieceFrom.setBitboard(toCaseBitboard);
         pieceFrom.setMoved();
 
-        boolean check = Bitboard.isCheck(board, !team);
-        boolean mate = Bitboard.isMate(board, !team);
+        boolean check = Bitboard.isCheck(newBoard, !team);
+        boolean mate = Bitboard.isMate(newBoard, !team);
         newBoard.mate = mate;
-        newBoard.check = check;
+        newBoard.check = check;        
         if (check & mate) {
             System.out.println("Checkmate");
         } else if (check) {

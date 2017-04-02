@@ -28,22 +28,16 @@ public class Chess_Engine {
         Boolean team = false;
 
         while (!board.isCheckmate() & !board.isStalemate()) {
-            System.out.println("Enter case from:");
-            char[] from_char = userInput.next().toCharArray();
-            int from_col = 8 - (Character.getNumericValue(from_char[0]) - 9);
-            int from_row = Character.getNumericValue(from_char[1]) - 1;
-            while ((from_char.length != 2)) {
-                System.out.println("Enter case from:");
-                from_char = userInput.next().toCharArray();
-            }
-            System.out.println("Enter case to:");
-            char[] to_char = userInput.next().toCharArray();
-            while ((to_char.length != 2)) {
-                System.out.println("Enter case to:");
-                to_char = userInput.next().toCharArray();
-            }
-            int to_col = 8 - (Character.getNumericValue(to_char[0]) - 9);
-            int to_row = Character.getNumericValue(to_char[1]) - 1;
+            System.out.println("Enter cases:");
+            char[] coordinates = userInput.next().toCharArray();            
+            while ((coordinates.length != 4)) {
+                System.out.println("Enter cases:");
+                coordinates = userInput.next().toCharArray();
+            }          
+            int from_col = 8 - (Character.getNumericValue(coordinates[0]) - 9);
+            int from_row = Character.getNumericValue(coordinates[1]) - 1;
+            int to_col = 8 - (Character.getNumericValue(coordinates[2]) - 9);
+            int to_row = Character.getNumericValue(coordinates[3]) - 1;
             int from = from_col + from_row * 8;
             int to = to_col + to_row * 8;
             boolean success = true;
@@ -56,6 +50,9 @@ public class Chess_Engine {
             if (success) {
                 Bitboard.outWithChequerBoard(board);
                 team = !team;
+                if(board.isCheck()){
+                    System.out.println("Check");
+                }
             }
         }
         if (board.isStalemate()) {
