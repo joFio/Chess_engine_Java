@@ -36,7 +36,7 @@ public class Bitboard {
 
     public static void outWithChequerBoard(Board board) {
         String[] boardString = new String[64];
-        List<Piece> pieces =  board.getAllPieces().stream().filter((p) -> !p.isCaptured()).collect(Collectors.toList());
+        List<Piece> pieces = board.getAllPieces().stream().filter((p) -> !p.isCaptured()).collect(Collectors.toList());
         for (Piece piece : pieces) {
             int position = piece.getPosition();
             String symbol = "";
@@ -61,7 +61,7 @@ public class Bitboard {
                     break;
             }
             if (piece.getTeam()) {
-                symbol  = symbol + "+";
+                symbol = symbol + "+";
             } else {
                 symbol = symbol + "-";
             }
@@ -213,24 +213,26 @@ public class Bitboard {
 
     public static long getLegalMoves(Piece piece, Board board) {
         Boolean team = piece.getTeam();
+        // Remove captured pieces from Lists
+        List<Piece> teamPieces = board.getTeamPieces(team).stream().filter((p) -> p.isCaptured() == false).collect(Collectors.toList());
+        List<Piece> adversaryPieces = board.getAdversaryPieces(team).stream().filter((p) -> p.isCaptured() == false).collect(Collectors.toList());
+        List<Piece> teamRooks = board.getTeamRooks(team).stream().filter((p) -> p.isCaptured() == false).collect(Collectors.toList());
+        List<Piece> adversaryRooks = board.getAdversaryRooks(team).stream().filter((p) -> p.isCaptured() == false).collect(Collectors.toList());
+        List<Piece> teamPawns = board.getTeamPawns(team).stream().filter((p) -> p.isCaptured() == false).collect(Collectors.toList());
+        Piece teamKing = board.getTeamKing(team);
+
         long pieceBitboard = piece.getBitboard();
-        long teamBitboard = Bitboard.or(board.getTeamPieces(team));
-        long adversaryBitboard = Bitboard.or(board.getAdversaryPieces(team));
-        long teamPawnsBitboard = Bitboard.or(board.getTeamPawns(team));
+        long teamBitboard = Bitboard.or(teamPieces);
+        long adversaryBitboard = Bitboard.or(adversaryPieces);
+        long teamPawnsBitboard = Bitboard.or(teamPawns);
         long adversaryPawnsBitboard = 0L;
         if (board.getEnPassantPawn() != null) {
             adversaryPawnsBitboard = board.getEnPassantPawn().getBitboard();
         }
-
-        Piece teamKing = board.getTeamKing(team);
-        List<Piece> adversaryPieces = board.getAdversaryPieces(team);
-        List<Piece> teamRooks = board.getTeamRooks(team);
-        List<Piece> adversaryRooks = board.getAdversaryRooks(team);
         long[] splitMoves = Bitboard.getMoves(piece, teamBitboard, adversaryBitboard, adversaryPawnsBitboard, teamRooks, false);
         long moves = Bitboard.or(splitMoves);
         long teamBitboardWithoutPiece = pieceBitboard ^ teamBitboard;
-        List<Piece> threatPieces = adversaryPieces.stream().filter((p) -> p.isCaptured() == false).collect(Collectors.toList());
-        for (Piece pce : threatPieces) {
+        for (Piece pce : adversaryPieces) {
             if (piece.getType() == PieceType.KING) {
                 long adversaryBitboardWithoutKingAttack = ((~moves) & adversaryBitboard);
                 long teamBitboardWithoutKingWithKingAttack = teamBitboardWithoutPiece | (moves & adversaryBitboard);

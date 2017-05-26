@@ -5,6 +5,7 @@
  */
 package chess_engine;
 
+import chess_game_state_evaluation.Heuristic;
 import java.util.Scanner;
 
 /**
@@ -50,8 +51,9 @@ public class Chess_Engine {
             if (success) {
                 Bitboard.outWithChequerBoard(board);
                 team = !team;
+                System.out.println(Heuristic.getScoreForPosition(board));
                 if(board.isCheck()){
-                    System.out.println("Check");
+                    System.out.println("Check");                    
                 }
             }
         }

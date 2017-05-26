@@ -12,14 +12,13 @@ package chess_engine;
 public class Piece {
 
     final private boolean team; // 0 = white, black = true
-
     private PieceType pieceType;
     private boolean moved;
     private boolean captured;
     private long bitboard;
     private int position;
 
-    Piece(Piece piece) {
+    public Piece(Piece piece) {
         team = piece.team;
         pieceType = piece.pieceType;
         moved = piece.moved;
@@ -28,7 +27,7 @@ public class Piece {
         position = piece.position;
     }
 
-    Piece(long bitboard, PieceType pieceType, boolean team) {
+    public Piece(long bitboard, PieceType pieceType, boolean team) {
         this.pieceType = pieceType;
         this.team = team;
         this.bitboard = bitboard;

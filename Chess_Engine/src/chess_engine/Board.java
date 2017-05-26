@@ -9,6 +9,7 @@ import java.util.EmptyStackException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+//TODO Add treatment of captured pieces
 /**
  *
  * @author jonathan
@@ -63,7 +64,7 @@ public final class Board {
         this.refresh();
     }
 
-    Board() {
+   public Board() {
         whiteKing = new Piece(SetupConstants.WHITE_KING, PieceType.KING, false);
         pieces = new ArrayList<>();
         whitePieces = new ArrayList<>();
@@ -281,6 +282,34 @@ public final class Board {
             return whiteKing;
         }
         return blackKing;
+    }
+    public List<Piece> getTeamQueens(Boolean team) {
+        if (team) {
+            return blackQueens;
+        } else {
+            return whiteQueens;
+        }
+    }
+     public List<Piece> getTeamBishops(Boolean team) {
+        if (team) {
+            return blackBishops;
+        } else {
+            return whiteBishops;
+        }
+    }
+      public List<Piece> getAdversaryBishops(Boolean team) {
+        if (team) {
+            return whiteBishops;
+        } else {
+            return blackBishops;
+        }
+    }
+
+    public List<Piece> getAdversaryQueens(Boolean team) {
+        if (team) {
+            return whiteQueens;
+        }
+        return blackQueens;
     }
 
     public void flipTurn() {
